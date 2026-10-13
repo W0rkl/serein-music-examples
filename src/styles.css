@@ -1506,7 +1506,7 @@ body:has(dialog[open]) {
 .phone .home-hero {
   display: block;
   position: relative;
-  min-height: 246px;
+  min-height: 340px;
   padding: 14px 0 15px;
 }
 .phone .hero-copy {
@@ -1534,7 +1534,7 @@ body:has(dialog[open]) {
 .phone .hero-vinyl {
   position: absolute;
   right: -28px;
-  top: 45px;
+  top: 176px;
   width: 180px;
   height: 190px;
   padding: 0;
