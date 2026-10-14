@@ -10,7 +10,7 @@ import {
   Bookmark,
   Disc3,
   Heart,
-  AudioLines,
+  ArrowUpRight,
   Music2,
   PanelLeftClose,
   ListMusic,
@@ -43,7 +43,17 @@ import {
   type Track,
 } from './lib/catalog';
 
-import { readLibrary, toggle, stepIndex, moveQueue } from './lib/model';
+import {
+  readLibrary,
+  toggle,
+  stepIndex,
+  moveQueue,
+  randomQueue,
+  readProfile,
+  type LocalProfile as Profile,
+} from './lib/model';
+import { ShuffleLauncher } from './components/ui/shuffle-launcher';
+import { LocalProfile } from './components/ui/local-profile';
 
 import { useDemoAudio } from './hooks/use-demo-audio';
 
@@ -79,11 +89,13 @@ type Route = {
     | 'collection'
     | 'album'
     | 'artist'
-    | 'playlist';
+    | 'playlist'
+    | 'profile';
   id?: string;
 };
 
 const storageKey = 'serein-demo-library-v1';
+const profileKey = 'serein-local-profile-v1';
 
 const parseRoute = (): Route => {
   const [type, id] = location.hash.slice(1).split('/');
@@ -95,6 +107,7 @@ const parseRoute = (): Route => {
     'album',
     'artist',
     'playlist',
+    'profile',
   ].includes(type)
     ? { type: type as Route['type'], id }
     : { type: 'home' };
@@ -188,8 +201,16 @@ export function App() {
     themeMode === 'light' || (themeMode === 'system' && systemLight);
   const setLight = (next: boolean) => setThemeMode(next ? 'light' : 'dark');
   const [expandedSidebar, setExpandedSidebar] = useState(false);
-  const [waveSettingsOpen, setWaveSettingsOpen] = useState(false);
-  const [waveMode, setWaveMode] = useState('all');
+  const [pickMode, setPickMode] = useState('all');
+  const [pickCount, setPickCount] = useState(0);
+  const [profileUnsaved, setProfileUnsaved] = useState(false);
+  const [profile, setProfile] = useState(() => {
+    try {
+      return readProfile(localStorage.getItem(profileKey));
+    } catch {
+      return readProfile(null);
+    }
+  });
   useEffect(() => {
     const media = matchMedia('(prefers-color-scheme: light)');
     const on = () => setSystemLight(media.matches);
@@ -202,8 +223,6 @@ export function App() {
   const [repeat, setRepeat] = useState(false);
 
   const [shuffle, setShuffle] = useState(false);
-
-  const [mood, setMood] = useState('slow-morning');
 
   const [notice, setNotice] = useState('');
 
@@ -362,12 +381,33 @@ export function App() {
     setSelection((s) => s + 1);
   }
 
-  function playMood(id: string) {
-    const list = playlists.find((p) => p.id === id) ?? playlists[0];
-    setMood(id);
-    playTrack(list.ids[0], list.ids, {
-      source: `поток / ${list.title}`,
-    });
+  const pickPool =
+    pickMode === 'calm'
+      ? playlists[0].ids
+      : pickMode === 'pulse'
+        ? playlists[2].ids
+        : tracks.map((t) => t.id);
+
+  function pickMusic() {
+    const ids = randomQueue(pickPool, track.id);
+    if (!ids.length) {
+      notify('в этой подборке пока нет треков');
+      return;
+    }
+    setPickCount((count) => count + 1);
+    playTrack(ids[0], ids, { source: 'случайный выбор' });
+  }
+
+  function saveProfile(next: Profile) {
+    setProfile(next);
+    try {
+      localStorage.setItem(profileKey, JSON.stringify(next));
+      setProfileUnsaved(false);
+      return true;
+    } catch {
+      setProfileUnsaved(true);
+      return false;
+    }
   }
 
   function enqueue(id: string) {
@@ -411,115 +451,146 @@ export function App() {
     : [];
 
   function page() {
-    if (route.type === 'home')
+    if (route.type === 'home') {
+      const coverIndex = albums.findIndex((a) => a.id === album.id);
+      const picked = pickCount > 0;
       return (
-        <section className="wave-page" aria-label="моя волна">
-          <div className="wave-moods" aria-label="волна по настроению">
-            {[
-              'добавить энергии',
-              'радостно на душе',
-              'вечериниться',
-              'сохранять спокойствие',
-              'в работу с головой',
-            ].map((title, i) => (
-              <button
-                key={title}
-                className="wave-mood"
-                onClick={() => playMood(playlists[i % 3].id)}
-              >
-                <span
-                  className={`mood-shape mood-shape-${i}`}
-                  aria-hidden="true"
+        <section className="listen-page" aria-label="случайный выбор музыки">
+          <div className="listen-heading">
+            <span className="listen-kicker">слушать / без плана</span>
+            <h1>
+              оставь выбор
+              <br />
+              случаю.
+            </h1>
+            <p>знакомое или новое. просто нажми.</p>
+          </div>
+          <div className="listen-deck">
+            <ShuffleLauncher
+              covers={[-1, 0, 1].map(
+                (offset) =>
+                  albums[(coverIndex + offset + albums.length) % albums.length],
+              )}
+              selection={pickCount}
+              picked={picked}
+              onPick={pickMusic}
+            />
+            <div className="listen-detail">
+              <div className="listen-filter">
+                <span>какое настроение?</span>
+                <GlassRadioGroup
+                  label="настроение случайного выбора"
+                  value={pickMode}
+                  onChange={setPickMode}
+                  items={[
+                    { id: 'all', label: 'всё' },
+                    { id: 'calm', label: 'спокойно' },
+                    { id: 'pulse', label: 'ритм' },
+                  ]}
                 />
-                <span>{title}</span>
-              </button>
-            ))}
-          </div>
-          <div className="wave-center">
-            <div
-              className={`wave-aura ${audio.playing ? 'aura-playing' : ''}`}
-              aria-hidden="true"
-            >
-              <i />
-              <i />
-              <i />
-            </div>
-            <h1>моя волна</h1>
-            <div className="wave-track">
-              <strong>
-                {audio.playing
-                  ? track.title
-                  : 'музыка, которая попадает в тебя'}
-              </strong>
-              <span>
-                {audio.playing ? album.artist : 'настроится, пока ты слушаешь'}
-              </span>
-            </div>
-            <div className="wave-transport">
-              <button
-                className="icon-button"
-                aria-label="предыдущий трек волны"
-                onClick={() => skip(-1)}
+                <small>применится к следующему выбору</small>
+              </div>
+              <div
+                className="listen-result"
+                aria-live="polite"
+                aria-atomic="true"
               >
-                <SkipBack size={25} fill="currentColor" />
-              </button>
-              <motion.button
-                className="wave-play"
-                aria-label={
-                  audio.playing ? 'приостановить волну' : 'слушать мою волну'
-                }
-                onClick={() =>
-                  audio.playing ||
-                  queueSource ===
-                    `поток / ${(playlists.find((p) => p.id === mood) ?? playlists[0]).title}`
-                    ? void audio.play()
-                    : playMood(mood)
-                }
-                whileTap={{ scale: 0.9 }}
-              >
-                {audio.playing ? (
-                  <Pause size={34} fill="currentColor" />
+                <span className="listen-result-caption">
+                  {picked || audio.playing
+                    ? audio.playing
+                      ? 'сейчас играет'
+                      : 'на паузе'
+                    : 'с чего начнём?'}
+                </span>
+                {picked || audio.playing ? (
+                  <>
+                    <strong>{track.title}</strong>
+                    <button
+                      className="text-button secondary"
+                      onClick={() => goto('artist', album.artistId)}
+                    >
+                      {album.artist}
+                    </button>
+                  </>
                 ) : (
-                  <Play size={34} fill="currentColor" />
+                  <>
+                    <strong>
+                      {pickPool.length} треков.
+                      <br />
+                      любой может стать любимым.
+                    </strong>
+                    <span className="secondary">сохраняй то, что зацепит</span>
+                  </>
                 )}
-              </motion.button>
-              <button
-                className="icon-button"
-                aria-label="следующий трек волны"
-                onClick={() => skip(1)}
-                disabled={index === queue.length - 1 && !repeat}
-              >
-                <SkipForward size={25} fill="currentColor" />
-              </button>
+              </div>
+              <div className="listen-actions">
+                {picked || audio.playing ? (
+                  <button
+                    className="listen-pause"
+                    aria-label={audio.playing ? 'пауза' : 'продолжить трек'}
+                    onClick={() => void audio.play()}
+                  >
+                    {audio.playing ? (
+                      <Pause size={18} fill="currentColor" />
+                    ) : (
+                      <Play size={18} fill="currentColor" />
+                    )}
+                    {audio.playing ? 'пауза' : 'продолжить'}
+                  </button>
+                ) : (
+                  <button
+                    className="listen-pause"
+                    onClick={() => goto('browse')}
+                  >
+                    выбрать самому <ArrowRight size={17} />
+                  </button>
+                )}
+                <button
+                  className="icon-button"
+                  aria-label="очередь случайного выбора"
+                  onClick={() => setQueueOpen(true)}
+                >
+                  <ListMusic size={21} />
+                </button>
+                {(picked || audio.playing) && (
+                  <button
+                    className="icon-button"
+                    aria-label="сохранить выбранный трек"
+                    aria-pressed={library.likedTracks.includes(track.id)}
+                    onClick={() => likeTrack(track.id)}
+                  >
+                    <Heart
+                      size={21}
+                      fill={
+                        library.likedTracks.includes(track.id)
+                          ? 'currentColor'
+                          : 'none'
+                      }
+                    />
+                  </button>
+                )}
+              </div>
             </div>
-            <button
-              className="wave-settings"
-              onClick={() => setWaveSettingsOpen(true)}
-            >
-              <Settings2 size={17} /> настроить волну
-            </button>
-            <p className="wave-demo">демо · синтезированные фрагменты</p>
           </div>
-          <aside className="wave-now">
-            <h2>сейчас в волне</h2>
-            <button
-              onClick={() => setPlayerOpen(true)}
-              aria-label="открыть плеер волны"
-            >
-              <Cover album={album} />
+          <div className="listen-footer">
+            <span>демо · синтезированные фрагменты</span>
+            <button onClick={() => goto('browse')}>
+              весь каталог <ArrowUpRight size={16} />
             </button>
-            <strong>{track.title}</strong>
-            <button
-              className="text-button secondary"
-              onClick={() => goto('artist', album.artistId)}
-            >
-              {album.artist}
-            </button>
-            <button className="wave-queue" onClick={() => setQueueOpen(true)}>
-              <ListMusic size={18} /> очередь воспроизведения
-            </button>
-          </aside>
+          </div>
         </section>
+      );
+    }
+    if (route.type === 'profile')
+      return (
+        <LocalProfile
+          profile={profile}
+          unsaved={profileUnsaved}
+          library={library}
+          onSave={saveProfile}
+          onCollection={() => goto('collection')}
+          onSettings={() => setSettingsOpen(true)}
+        />
       );
     if (route.type === 'browse')
       return (
@@ -983,7 +1054,7 @@ export function App() {
 
   const navItems = [
     { id: 'search', label: 'поиск', icon: <Search size={23} /> },
-    { id: 'home', label: 'моя волна', icon: <AudioLines size={23} /> },
+    { id: 'home', label: 'слушать', icon: <Shuffle size={23} /> },
     { id: 'browse', label: 'что послушать', icon: <Music2 size={23} /> },
     { id: 'collection', label: 'коллекция', icon: <Bookmark size={21} /> },
   ];
@@ -1033,11 +1104,11 @@ export function App() {
               <aside className="sidebar">
                 <button
                   className="logo text-button"
-                  aria-label="открыть мою волну"
+                  aria-label="открыть случайный выбор"
                   onClick={() => goto('home')}
                 >
                   <span className="music-symbol" aria-hidden="true">
-                    ✳
+                    m.
                   </span>
                   <span className="brand-word">музыка</span>
                 </button>
@@ -1106,11 +1177,11 @@ export function App() {
                   <>
                     <button
                       className="logo text-button"
-                      aria-label="открыть мою волну"
+                      aria-label="открыть случайный выбор"
                       onClick={() => goto('home')}
                     >
                       <span className="music-symbol" aria-hidden="true">
-                        ✳
+                        m.
                       </span>
                       <span className="brand-word">музыка</span>
                     </button>
@@ -1124,8 +1195,8 @@ export function App() {
                       </button>
                       <button
                         className="icon-button profile-button"
-                        aria-label="настройки"
-                        onClick={() => setSettingsOpen(true)}
+                        aria-label="открыть профиль"
+                        onClick={() => goto('profile')}
                       >
                         <UserRound size={20} />
                       </button>
@@ -1145,7 +1216,7 @@ export function App() {
                       </button>
                       <span className="breadcrumb">
                         {route.type === 'home'
-                          ? 'моя волна'
+                          ? 'слушать'
                           : route.type === 'browse'
                             ? 'что послушать'
                             : route.type === 'search'
@@ -1156,7 +1227,9 @@ export function App() {
                                   ? 'релиз'
                                   : route.type === 'artist'
                                     ? 'артист'
-                                    : 'плейлист'}
+                                    : route.type === 'profile'
+                                      ? 'профиль'
+                                      : 'плейлист'}
                       </span>
                     </div>
                     <div className="header-actions">
@@ -1176,8 +1249,8 @@ export function App() {
                       </button>
                       <button
                         className="icon-button profile-button"
-                        aria-label="настройки"
-                        onClick={() => setSettingsOpen(true)}
+                        aria-label="открыть профиль"
+                        onClick={() => goto('profile')}
                       >
                         <UserRound size={19} />
                       </button>
@@ -1492,44 +1565,6 @@ export function App() {
               </div>
             </MotionDialog>
             <MotionDialog
-              open={waveSettingsOpen}
-              onClose={() => setWaveSettingsOpen(false)}
-              title="настроить волну"
-              id="wave-settings"
-            >
-              <div className="wave-preferences">
-                <p className="secondary">выбери, чего хочется сейчас</p>
-                <GlassRadioGroup
-                  label="характер волны"
-                  items={[
-                    { id: 'all', label: 'всё' },
-                    { id: 'favorite', label: 'любимое' },
-                    { id: 'discover', label: 'открытия' },
-                  ]}
-                  value={waveMode}
-                  onChange={(id) => {
-                    setWaveMode(id);
-                    const next =
-                      id === 'favorite'
-                        ? 'slow-morning'
-                        : id === 'discover'
-                          ? 'soft-rhythm'
-                          : 'after-midnight';
-                    setMood(next);
-                    if (audio.playing) playMood(next);
-                  }}
-                />
-                <ElasticGallery
-                  items={playlists}
-                  onOpen={(id) => {
-                    playMood(id);
-                    setWaveSettingsOpen(false);
-                  }}
-                />
-                <p className="demo-note">в демо меняется подборка фрагментов</p>
-              </div>
-            </MotionDialog>
-            <MotionDialog
               open={queueOpen}
               onClose={() => setQueueOpen(false)}
               title="очередь воспроизведения"
@@ -1615,8 +1650,16 @@ export function App() {
                     <UserRound size={26} />
                   </span>
                   <div>
-                    <strong>твоя музыка</strong>
-                    <p>настрой под себя</p>
+                    <button
+                      className="text-button settings-profile-link"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        goto('profile');
+                      }}
+                    >
+                      <strong>{profile.nickname}</strong>
+                      <span>открыть профиль →</span>
+                    </button>
                   </div>
                   <SkyToggle light={light} onChange={setLight} />
                 </ProfileCard>

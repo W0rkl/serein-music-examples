@@ -54,6 +54,43 @@ export function resolveQueue(ids: string[]): string[] {
   const known = new Set(tracks.map((t) => t.id));
   return ids.filter((id) => known.has(id));
 }
+export function randomQueue(
+  ids: string[],
+  currentId: string,
+  random = Math.random,
+): string[] {
+  const next = [...new Set(resolveQueue(ids))];
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  if (next.length > 1 && next[0] === currentId) next.push(next.shift()!);
+  return next;
+}
+
+export type LocalProfile = {
+  nickname: string;
+  avatar: 'sun' | 'mint' | 'night';
+};
+export function readProfile(raw: string | null): LocalProfile {
+  const fallback: LocalProfile = { nickname: 'слушатель', avatar: 'sun' };
+  try {
+    const value: unknown = JSON.parse(raw ?? 'null');
+    if (!value || typeof value !== 'object' || Array.isArray(value))
+      return fallback;
+    const data = value as Record<string, unknown>;
+    return {
+      nickname:
+        typeof data.nickname === 'string' && data.nickname.trim()
+          ? data.nickname.trim().slice(0, 32)
+          : fallback.nickname,
+      avatar:
+        data.avatar === 'mint' || data.avatar === 'night' ? data.avatar : 'sun',
+    };
+  } catch {
+    return fallback;
+  }
+}
 export function stepIndex(
   index: number,
   length: number,

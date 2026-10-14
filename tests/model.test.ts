@@ -6,6 +6,8 @@ import {
   stepIndex,
   moveQueue,
   resolveQueue,
+  randomQueue,
+  readProfile,
 } from '../src/lib/model.ts';
 import { tracks } from '../src/lib/catalog.ts';
 
@@ -21,6 +23,46 @@ test('corrupt or unknown saved library content cannot enter the catalog', () => 
   assert.deepEqual(result.likedTracks, [tracks[0].id]);
   assert.deepEqual(result.likedAlbums, []);
   assert.deepEqual(result.followedArtists, []);
+});
+
+test('random choice stays in its pool, avoids immediate repeats and does not mutate it', () => {
+  const ids = tracks.slice(0, 6).map((t) => t.id);
+  for (const sample of [0, 0.2, 0.5, 0.99]) {
+    for (const current of ids) {
+      const next = randomQueue(ids, current, () => sample);
+      assert.notEqual(next[0], current);
+      assert.deepEqual([...next].sort(), [...ids].sort());
+      assert.deepEqual(
+        ids,
+        tracks.slice(0, 6).map((t) => t.id),
+      );
+    }
+  }
+});
+
+test('random choice supports an empty pool and a single valid track', () => {
+  assert.deepEqual(randomQueue(['missing'], tracks[0].id), []);
+  assert.deepEqual(
+    randomQueue([tracks[0].id, tracks[0].id, 'missing'], tracks[0].id),
+    [tracks[0].id],
+  );
+});
+
+test('local profile rejects broken storage and bounds its display values', () => {
+  assert.equal(readProfile('{broken').nickname, 'слушатель');
+  assert.deepEqual(readProfile('[1]'), readProfile(null));
+  assert.deepEqual(
+    readProfile('{"nickname":9,"avatar":"unknown"}'),
+    readProfile(null),
+  );
+  assert.deepEqual(readProfile('{"nickname":"  тест  ","avatar":"mint"}'), {
+    nickname: 'тест',
+    avatar: 'mint',
+  });
+  assert.equal(
+    readProfile(JSON.stringify({ nickname: 'a'.repeat(100) })).nickname.length,
+    32,
+  );
 });
 test('saving an album does not save all its tracks', () => {
   const before = readLibrary(

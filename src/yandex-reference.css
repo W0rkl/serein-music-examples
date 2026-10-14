@@ -670,69 +670,6 @@ h3,
 .queue-track small {
   font-size: 13px;
 }
-.wave-page {
-  display: grid;
-  grid-template-columns: 240px minmax(320px, 1fr) 260px;
-  gap: 16px;
-  min-height: 100%;
-  position: relative;
-  overflow: hidden;
-}
-.app-shell[data-route='home'] .content-area {
-  background: var(--paper);
-  border: 0;
-  grid-template-rows: 0 minmax(0, 1fr);
-}
-.app-shell[data-route='home'] .main-scroll {
-  padding: 0;
-  overflow-x: hidden;
-  grid-row: 2;
-}
-.app-shell[data-route='home'] .app-header {
-  position: absolute;
-  right: 28px;
-  top: 16px;
-  z-index: 5;
-  padding: 0;
-  min-height: 36px;
-}
-.app-shell[data-route='home'] .header-left,
-.app-shell[data-route='home'] .header-search {
-  display: none;
-}
-.app-shell[data-route='home'] .header-actions {
-  gap: 12px;
-}
-.wave-moods {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 24px;
-  padding: 60px 0 40px;
-}
-.wave-mood {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  text-align: left;
-  min-height: 80px;
-  font-size: 16px;
-  line-height: 20px;
-  font-weight: 500;
-  padding: 0 10px;
-  border-radius: 12px;
-}
-.wave-mood:hover {
-  background: #ffffff08;
-}
-.wave-mood:nth-child(1),
-.wave-mood:nth-child(5) {
-  transform: translateX(28px);
-}
-.wave-mood:nth-child(2),
-.wave-mood:nth-child(4) {
-  transform: translateX(8px);
-}
 .mood-shape {
   display: block;
   width: 64px;
@@ -763,157 +700,6 @@ h3,
 .mood-shape-4 {
   background: linear-gradient(135deg, #efd3ff, #8739c9);
   border-radius: 50% 15% 50% 15%;
-}
-.wave-center {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 150px 0 50px;
-  z-index: 1;
-  min-width: 0;
-}
-.wave-center h1 {
-  font-size: 64px;
-  line-height: 1.05;
-  z-index: 1;
-  white-space: nowrap;
-}
-.wave-aura {
-  position: absolute;
-  top: 60px;
-  left: 50%;
-  width: 400px;
-  height: 400px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  filter: blur(24px);
-  z-index: -1;
-  opacity: 0.85;
-}
-.wave-aura i {
-  position: absolute;
-  inset: 60px 40px 60px 0;
-  border-radius: 30% 70% 60% 40%;
-  background: #be007c;
-  transform: rotate(45deg);
-  animation: wave-drift 12s ease-in-out infinite alternate;
-}
-.wave-aura i:nth-child(2) {
-  inset: 90px 70px 130px 70px;
-  background: #e7df00;
-  transform: rotate(-15deg);
-  animation-delay: -4s;
-}
-.wave-aura i:nth-child(3) {
-  inset: 190px 30px 20px 130px;
-  background: #b80080;
-  animation-delay: -8s;
-}
-.wave-aura.aura-playing {
-  filter: blur(20px);
-}
-@keyframes wave-drift {
-  to {
-    transform: rotate(95deg) scale(0.8, 1.1);
-    border-radius: 60% 35% 30% 70%;
-  }
-}
-.wave-track {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 190px;
-  z-index: 1;
-  font-size: 15px;
-  line-height: 22px;
-}
-.wave-track > span {
-  color: var(--muted);
-  font-size: 14px;
-}
-.wave-transport {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 24px;
-}
-.wave-transport > .icon-button {
-  width: 48px;
-  height: 48px;
-  background: var(--hover);
-  border-radius: 50%;
-  color: var(--muted);
-}
-.wave-play {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #000;
-  display: grid;
-  place-items: center;
-}
-.wave-settings {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--hover);
-  padding: 10px 18px;
-  border-radius: 24px;
-  margin-top: 24px;
-  min-height: 40px;
-  font-size: 14px;
-}
-.wave-demo {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 16px;
-}
-.wave-now {
-  align-self: center;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 20px;
-  background: var(--panel);
-  border-radius: 16px;
-  margin-right: 12px;
-}
-.wave-now h2 {
-  font-size: 20px;
-  margin-bottom: 16px;
-}
-.wave-now .cover {
-  width: 100%;
-  aspect-ratio: 1;
-  margin-bottom: 12px;
-}
-.wave-now > .text-button {
-  text-align: left;
-  font-size: 14px;
-}
-.wave-now > strong {
-  font-weight: 500;
-  font-size: 16px;
-}
-.wave-queue {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-  text-align: left;
-}
-.wave-preferences {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding: 8px 0;
 }
 .glass-radio-group {
   position: relative;
@@ -1025,20 +811,6 @@ h3,
 .elastic-item[data-expanded] .elastic-caption {
   opacity: 1;
   max-height: 20px;
-}
-.wave-preferences .elastic-gallery {
-  height: 170px;
-  gap: 8px;
-}
-.wave-preferences .elastic-item {
-  padding: 12px;
-}
-.wave-preferences .elastic-item strong {
-  font-size: 18px;
-  line-height: 20px;
-}
-.wave-preferences .elastic-caption {
-  display: none;
 }
 .vinyl-reveal {
   position: relative;
@@ -1306,20 +1078,6 @@ h3,
 .sort-playlist > .icon-button {
   flex-shrink: 0;
 }
-@media (max-width: 1200px) {
-  .wave-page {
-    grid-template-columns: 190px minmax(0, 1fr);
-  }
-  .wave-now {
-    display: none;
-  }
-  .wave-center {
-    padding-top: 135px;
-  }
-  .wave-center h1 {
-    font-size: 60px;
-  }
-}
 .phone {
   max-width: 430px;
   grid-template-rows: minmax(0, 1fr) 64px 64px;
@@ -1559,106 +1317,6 @@ h3,
   line-height: 12px;
   white-space: nowrap;
 }
-.phone .wave-page {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-height: 100%;
-  padding-bottom: 8px;
-}
-.phone[data-route='home'] .content-area {
-  grid-template-rows: 0 minmax(0, 1fr);
-}
-.phone[data-route='home'] .main-scroll {
-  padding: 0;
-}
-.phone[data-route='home'] .app-header {
-  top: 12px;
-  left: 16px;
-  right: 16px;
-  justify-content: space-between;
-}
-.phone[data-route='home'] .app-header .logo {
-  visibility: hidden;
-  pointer-events: none;
-}
-.phone .wave-center {
-  order: 0;
-  padding: 94px 16px 24px;
-  min-height: 460px;
-}
-.phone .wave-center h1 {
-  font-size: 56px;
-  line-height: 60px;
-}
-.phone .wave-aura {
-  top: 55px;
-  width: 300px;
-  height: 300px;
-  filter: blur(18px);
-}
-.phone .wave-aura i {
-  inset: 30px 20px 20px 0;
-}
-.phone .wave-aura i:nth-child(2) {
-  inset: 45px 55px 95px 40px;
-}
-.phone .wave-aura i:nth-child(3) {
-  inset: 115px 0 0 140px;
-}
-.phone .wave-track {
-  margin-top: 36px;
-  font-size: 14px;
-}
-.phone .wave-track > span {
-  font-size: 13px;
-}
-.phone .wave-transport {
-  margin-top: 24px;
-  gap: 20px;
-}
-.phone .wave-play {
-  width: 88px;
-  height: 88px;
-}
-.phone .wave-settings {
-  margin-top: 24px;
-  font-size: 14px;
-  min-height: 40px;
-}
-.phone .wave-demo {
-  font-size: 11px;
-  margin-top: 12px;
-}
-.phone .wave-moods {
-  order: 1;
-  flex-direction: row;
-  justify-content: flex-start;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 12px 16px 20px;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-.phone .wave-mood {
-  flex: 0 0 120px;
-  flex-direction: column;
-  justify-content: flex-start;
-  text-align: center;
-  gap: 12px;
-  padding: 0;
-  font-size: 14px;
-  line-height: 18px;
-  transform: none;
-  scroll-snap-align: center;
-}
-.phone .wave-mood .mood-shape {
-  width: 68px;
-  height: 70px;
-}
-.phone .wave-now {
-  display: none;
-}
 .phone .elastic-gallery {
   height: 180px;
   gap: 8px;
@@ -1729,9 +1387,6 @@ h3,
   }
 }
 @media (max-width: 360px) {
-  .phone .wave-center h1 {
-    font-size: 46px;
-  }
   .phone .main-scroll {
     padding-left: 12px;
     padding-right: 12px;
@@ -1759,40 +1414,15 @@ h3,
   padding: 8px 12px;
   min-height: 40px;
 }
-.wave-track > span {
-  color: #c5c5c5;
-}
 
 .app-stage .ui-button.outline {
   border: 0;
   background: var(--hover);
 }
-.app-stage[data-theme='light'] .wave-track > span {
-  color: var(--muted);
-}
 .app-stage .animated-tabs .tab-item {
   font-size: 14px;
 }
 @media (min-width: 720px) and (max-width: 1000px) {
-  .wave-page {
-    grid-template-columns: 140px minmax(0, 1fr);
-  }
-  .wave-center h1 {
-    font-size: 44px;
-  }
-  .wave-mood {
-    font-size: 14px;
-    gap: 8px;
-    transform: none !important;
-  }
-  .wave-mood .mood-shape {
-    width: 44px;
-    height: 50px;
-  }
-  .wave-aura {
-    width: 280px;
-    height: 330px;
-  }
   .player-bar {
     grid-template-columns: 1fr 1fr;
     gap: 12px;
