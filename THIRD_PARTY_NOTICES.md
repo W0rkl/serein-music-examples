@@ -1,5 +1,11 @@
 # third-party notices
 
+## visual reference and supplied components — 2026-10-14
+
+The current design follows the public Yandex Music web interface observed on 2026-10-14. Reference URLs, measured geometry, screenshot scope and intentional differences are documented in [DESIGN.md](DESIGN.md). YS Text and YSMusic Headline are loaded from Yandex's public font CDN. These fonts, reference screenshots, brand assets and remotely referenced photographs are not licensed by this project under MIT. No official affiliation is claimed.
+
+The ten mechanisms supplied by the user, their local adaptations, author links and licensing boundaries are recorded in [MOTION-MAP.md](MOTION-MAP.md). The new implementation is in `src/components/ui/selected-motion.tsx`. GreatUI's current custom license must not be replaced by the MIT label in a pasted comment; the complete upstream UI library is not included. Attachments without an explicit license are not represented as MIT. The project is an end-application design example, not a redistribution of upstream component libraries.
+
 `src/components/motion-ui.tsx` adapts animation mechanisms from these components, discovered on 21st.dev and checked against their authors' published source on 2026-10-13. It is not a verbatim copy of every upstream component.
 
 ## motion primitives — julien thibeaut / ibelick

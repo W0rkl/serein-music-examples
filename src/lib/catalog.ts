@@ -6,6 +6,7 @@ export type Album = {
   genre: string;
   color: string;
   art: string;
+  image: string;
   year: number;
   description: string;
 };
@@ -26,6 +27,8 @@ export const albums: Album[] = [
     genre: 'ambient',
     color: '#cdd3c4',
     art: 'rings',
+    image:
+      'https://cdn.21st.dev/assets/mirror/5d/5d6e8915544702407b6392e9773d77bade1c555a3e6a299510bc1cd8204a62b8.jpg',
     year: 2026,
     description:
       'небольшие формы, длинные паузы. три фрагмента для медленного утра.',
@@ -38,6 +41,8 @@ export const albums: Album[] = [
     genre: 'electronic',
     color: '#d45639',
     art: 'stripes',
+    image:
+      'https://cdn.21st.dev/assets/mirror/19/19bb6becb68b7c874c3791ffb234936e931771441065665663c0fb106224311f.jpg',
     year: 2026,
     description:
       'город после полуночи: тёплый бас, неровный ритм и воздух между ними.',
@@ -50,6 +55,8 @@ export const albums: Album[] = [
     genre: 'downtempo',
     color: '#879eb9',
     art: 'sphere',
+    image:
+      'https://cdn.21st.dev/assets/mirror/aa/aa803f534e92f6e1bffc791cda7e30748f775a39498f12a9828eb92deb5c6184.jpg',
     year: 2026,
     description:
       'комната, в которой можно никуда не торопиться. звук становится пространством.',
@@ -62,6 +69,8 @@ export const albums: Album[] = [
     genre: 'house',
     color: '#e4d995',
     art: 'square',
+    image:
+      'https://cdn.21st.dev/assets/mirror/71/71440bc0d5ed35f57b44bf08642e908cae075251ea59cda4d590ec2852354659.jpg',
     year: 2026,
     description: 'мягкий свет и ровный пульс. спокойный танцевальный релиз.',
   },
@@ -73,6 +82,8 @@ export const albums: Album[] = [
     genre: 'experimental',
     color: '#b8aab9',
     art: 'ellipse',
+    image:
+      'https://cdn.21st.dev/assets/mirror/f2/f25c373ae65890570d2cdbf057e3d999a5e7313a5aa34a9a7329f670d56b32da.jpg',
     year: 2025,
     description:
       'пространство за городом и музыка без спешки. три открытых горизонта.',
@@ -85,6 +96,8 @@ export const albums: Album[] = [
     genre: 'broken beat',
     color: '#cbc5bb',
     art: 'diagonal',
+    image:
+      'https://cdn.21st.dev/assets/mirror/96/961fb12099ef654125e178d3ee23bef8dc43cbbe07f327ca79042f8609c7d867.jpg',
     year: 2025,
     description:
       'вторая сторона знакомого ритма. сухие удары, немного тепла, много воздуха.',

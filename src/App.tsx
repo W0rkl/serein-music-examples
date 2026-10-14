@@ -10,7 +10,9 @@ import {
   Bookmark,
   Disc3,
   Heart,
-  Home,
+  AudioLines,
+  Music2,
+  PanelLeftClose,
   ListMusic,
   Monitor,
   Pause,
@@ -55,11 +57,29 @@ import {
 } from './components/motion-ui';
 
 import { Button } from './components/ui/button';
+import {
+  GlassRadioGroup,
+  SkyToggle,
+  ThemePreviews,
+  ElasticGallery,
+  VinylReveal,
+  ScrambleNote,
+  ProfileCard,
+  PlaylistOrder,
+  type ThemeMode,
+} from './components/ui/selected-motion';
 
 type PlayOptions = { toggle?: boolean; source?: string };
 
 type Route = {
-  type: 'home' | 'search' | 'collection' | 'album' | 'artist' | 'playlist';
+  type:
+    | 'home'
+    | 'browse'
+    | 'search'
+    | 'collection'
+    | 'album'
+    | 'artist'
+    | 'playlist';
   id?: string;
 };
 
@@ -69,6 +89,7 @@ const parseRoute = (): Route => {
   const [type, id] = location.hash.slice(1).split('/');
   return [
     'home',
+    'browse',
     'search',
     'collection',
     'album',
@@ -93,6 +114,15 @@ export function Cover({
       aria-label={`обложка ${album.title}`}
     >
       <span className="cover-art" aria-hidden="true" />
+      <img
+        className="cover-photo"
+        src={album.image}
+        alt=""
+        loading="lazy"
+        onError={(e) => {
+          e.currentTarget.style.display = 'none';
+        }}
+      />
       <strong>{album.title}</strong>
       <small>
         {album.artist}
@@ -115,7 +145,9 @@ export function App() {
 
   const [nav, setNav] = useState(() => {
     const r = parseRoute();
-    return ['home', 'search', 'collection'].includes(r.type) ? r.type : 'home';
+    return ['home', 'browse', 'search', 'collection'].includes(r.type)
+      ? r.type
+      : 'home';
   });
 
   const [query, setQuery] = useState('');
@@ -148,7 +180,22 @@ export function App() {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const [light, setLight] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
+  const [systemLight, setSystemLight] = useState(
+    matchMedia('(prefers-color-scheme: light)').matches,
+  );
+  const light =
+    themeMode === 'light' || (themeMode === 'system' && systemLight);
+  const setLight = (next: boolean) => setThemeMode(next ? 'light' : 'dark');
+  const [expandedSidebar, setExpandedSidebar] = useState(false);
+  const [waveSettingsOpen, setWaveSettingsOpen] = useState(false);
+  const [waveMode, setWaveMode] = useState('all');
+  useEffect(() => {
+    const media = matchMedia('(prefers-color-scheme: light)');
+    const on = () => setSystemLight(media.matches);
+    media.addEventListener('change', on);
+    return () => media.removeEventListener('change', on);
+  }, []);
 
   const [reduced, setReduced] = useState(false);
 
@@ -200,7 +247,7 @@ export function App() {
     const on = () => {
       const next = parseRoute();
       setRoute(next);
-      if (['home', 'search', 'collection'].includes(next.type))
+      if (['home', 'browse', 'search', 'collection'].includes(next.type))
         setNav(next.type);
     };
     addEventListener('hashchange', on);
@@ -238,7 +285,7 @@ export function App() {
 
   function goto(type: Route['type'], id?: string) {
     setRoute({ type, id });
-    if (['home', 'search', 'collection'].includes(type)) setNav(type);
+    if (['home', 'browse', 'search', 'collection'].includes(type)) setNav(type);
     location.hash = `${type}${id ? '/' + id : ''}`;
   }
 
@@ -319,7 +366,6 @@ export function App() {
     const list = playlists.find((p) => p.id === id) ?? playlists[0];
     setMood(id);
     playTrack(list.ids[0], list.ids, {
-      toggle: mood === id && track.id === list.ids[0],
       source: `поток / ${list.title}`,
     });
   }
@@ -367,84 +413,148 @@ export function App() {
   function page() {
     if (route.type === 'home')
       return (
-        <>
-          <section className="home-hero">
-            <div className="hero-copy">
-              <span className="eyebrow">музыка для твоего момента</span>
-              <h1>
-                твоя
-                <br />
-                <em>частота.</em>
-              </h1>
-              <p>
-                начни с одного трека.
-                <br />
-                дальше — как почувствуешь.
-              </p>
-              <Button className="primary" onClick={() => playMood(mood)}>
-                {audio.playing ? (
-                  <Pause size={17} />
-                ) : (
-                  <Play size={17} fill="currentColor" />
-                )}
-                слушать поток
-              </Button>
-            </div>
+        <section className="wave-page" aria-label="моя волна">
+          <div className="wave-moods" aria-label="волна по настроению">
+            {[
+              'добавить энергии',
+              'радостно на душе',
+              'вечериниться',
+              'сохранять спокойствие',
+              'в работу с головой',
+            ].map((title, i) => (
+              <button
+                key={title}
+                className="wave-mood"
+                onClick={() => playMood(playlists[i % 3].id)}
+              >
+                <span
+                  className={`mood-shape mood-shape-${i}`}
+                  aria-hidden="true"
+                />
+                <span>{title}</span>
+              </button>
+            ))}
+          </div>
+          <div className="wave-center">
             <div
-              className={`hero-vinyl ${audio.playing ? 'is-playing' : ''}`}
+              className={`wave-aura ${audio.playing ? 'aura-playing' : ''}`}
               aria-hidden="true"
             >
-              <div className="vinyl-disc">
-                <span>
-                  serein
-                  <br />
-                  33⅓
-                </span>
-              </div>
-              <div className="vinyl-sleeve">
-                <Cover album={album} />
-              </div>
-              <span className="vinyl-note">independent sounds / side a</span>
+              <i />
+              <i />
+              <i />
             </div>
-          </section>
-          <div className="mood-line">
-            <span className="secondary">сейчас хочется</span>
-            <AnimatedTabs
-              id="moods"
-              items={[
-                { id: 'slow-morning', label: 'спокойнее' },
-                { id: 'after-midnight', label: 'погромче' },
-                { id: 'soft-rhythm', label: 'нового' },
-              ]}
-              value={mood}
-              onChange={(id) => {
-                setMood(id);
-                if (audio.playing) playMood(id);
-              }}
-            />
+            <h1>моя волна</h1>
+            <div className="wave-track">
+              <strong>
+                {audio.playing
+                  ? track.title
+                  : 'музыка, которая попадает в тебя'}
+              </strong>
+              <span>
+                {audio.playing ? album.artist : 'настроится, пока ты слушаешь'}
+              </span>
+            </div>
+            <div className="wave-transport">
+              <button
+                className="icon-button"
+                aria-label="предыдущий трек волны"
+                onClick={() => skip(-1)}
+              >
+                <SkipBack size={25} fill="currentColor" />
+              </button>
+              <motion.button
+                className="wave-play"
+                aria-label={
+                  audio.playing ? 'приостановить волну' : 'слушать мою волну'
+                }
+                onClick={() =>
+                  audio.playing ||
+                  queueSource ===
+                    `поток / ${(playlists.find((p) => p.id === mood) ?? playlists[0]).title}`
+                    ? void audio.play()
+                    : playMood(mood)
+                }
+                whileTap={{ scale: 0.9 }}
+              >
+                {audio.playing ? (
+                  <Pause size={34} fill="currentColor" />
+                ) : (
+                  <Play size={34} fill="currentColor" />
+                )}
+              </motion.button>
+              <button
+                className="icon-button"
+                aria-label="следующий трек волны"
+                onClick={() => skip(1)}
+                disabled={index === queue.length - 1 && !repeat}
+              >
+                <SkipForward size={25} fill="currentColor" />
+              </button>
+            </div>
+            <button
+              className="wave-settings"
+              onClick={() => setWaveSettingsOpen(true)}
+            >
+              <Settings2 size={17} /> настроить волну
+            </button>
+            <p className="wave-demo">демо · синтезированные фрагменты</p>
           </div>
-          <SectionHeader
-            title="остановись на минуту"
-            note="редакционная подборка"
-          />
+          <aside className="wave-now">
+            <h2>сейчас в волне</h2>
+            <button
+              onClick={() => setPlayerOpen(true)}
+              aria-label="открыть плеер волны"
+            >
+              <Cover album={album} />
+            </button>
+            <strong>{track.title}</strong>
+            <button
+              className="text-button secondary"
+              onClick={() => goto('artist', album.artistId)}
+            >
+              {album.artist}
+            </button>
+            <button className="wave-queue" onClick={() => setQueueOpen(true)}>
+              <ListMusic size={18} /> очередь воспроизведения
+            </button>
+          </aside>
+        </section>
+      );
+    if (route.type === 'browse')
+      return (
+        <>
+          <div className="page-heading">
+            <h1>что послушать</h1>
+          </div>
+          <SectionHeader title="тебе понравится" />
           <AlbumRail label="альбомы для тебя">
-            {albums.slice(0, 4).map((a) => (
+            {albums.map((a) => (
               <AlbumCard {...albumProps} key={a.id} item={a} />
             ))}
           </AlbumRail>
-          <SectionHeader title="по настроению" />
+          <SectionHeader title="твоя музыка на сегодня" />
+          <ElasticGallery
+            items={playlists}
+            onOpen={(id) => goto('playlist', id)}
+          />
+          <SectionHeader title="сейчас в твоём ритме" />
+          <TrackRows
+            {...trackProps}
+            items={tracks.filter((_, i) => i % 3 === 0)}
+          />
+          <SectionHeader title="собрано для тебя" />
           <div className="playlist-grid">
             {playlists.map((p) => (
               <PlaylistCard
-                onOpen={(id) => goto('playlist', id)}
                 key={p.id}
                 item={p}
+                onOpen={(id) => goto('playlist', id)}
               />
             ))}
           </div>
           <div className="demo-note">
-            демо-каталог: исполнители и релизы вымышлены, звук синтезирован для
-            проверки интерфейса.
+            демо-каталог · вымышленные исполнители и синтезированный звук
           </div>
         </>
       );
@@ -637,15 +747,16 @@ export function App() {
                 />
               ))}
             {collectionType === 'playlists' && (
-              <div className="playlist-grid">
-                {playlists.map((p) => (
+              <PlaylistOrder
+                items={playlists}
+                onNotice={notify}
+                render={(id) => (
                   <PlaylistCard
+                    item={playlists.find((p) => p.id === id)!}
                     onOpen={(id) => goto('playlist', id)}
-                    key={p.id}
-                    item={p}
                   />
-                ))}
-              </div>
+                )}
+              />
             )}
             {collectionType === 'artists' &&
               (library.followedArtists.length ? (
@@ -690,7 +801,12 @@ export function App() {
         <>
           <div className="release-hero">
             <motion.div layoutId={`release-${a.id}`} className="release-art">
-              <Cover album={a} />
+              <VinylReveal
+                label={a.artist}
+                playing={audio.playing && album.id === a.id}
+              >
+                <Cover album={a} />
+              </VinylReveal>
             </motion.div>
             <div className="release-info">
               <span className="eyebrow">
@@ -779,7 +895,7 @@ export function App() {
                 .join('')}
             </div>
             <div>
-              <span className="eyebrow">независимый артист</span>
+              <ScrambleNote text="независимый артист" />
               <h1>{a.artist}</h1>
               <p>{a.description}</p>
               <div className="release-actions">
@@ -866,8 +982,9 @@ export function App() {
   }
 
   const navItems = [
-    { id: 'home', label: 'главная', icon: <Home size={21} /> },
-    { id: 'search', label: 'поиск', icon: <Search size={21} /> },
+    { id: 'search', label: 'поиск', icon: <Search size={23} /> },
+    { id: 'home', label: 'моя волна', icon: <AudioLines size={23} /> },
+    { id: 'browse', label: 'что послушать', icon: <Music2 size={23} /> },
     { id: 'collection', label: 'коллекция', icon: <Bookmark size={21} /> },
   ];
 
@@ -887,7 +1004,7 @@ export function App() {
         >
           <div className="version-toolbar">
             <span>
-              serein <small>/ интерактивный пример</small>
+              музыка <small>/ дизайн-пример</small>
             </span>
             <div>
               <a
@@ -908,23 +1025,41 @@ export function App() {
               </a>
             </div>
           </div>
-          <div className={`app-shell ${phone ? 'phone' : 'desktop'}`}>
+          <div
+            className={`app-shell ${phone ? 'phone' : 'desktop'} ${expandedSidebar ? 'sidebar-expanded' : ''}`}
+            data-route={route.type}
+          >
             {!phone && (
               <aside className="sidebar">
                 <button
                   className="logo text-button"
+                  aria-label="открыть мою волну"
                   onClick={() => goto('home')}
                 >
-                  serein<sup>®</sup>
+                  <span className="music-symbol" aria-hidden="true">
+                    ✳
+                  </span>
+                  <span className="brand-word">музыка</span>
+                </button>
+                <button
+                  className="sidebar-collapse icon-button"
+                  aria-label={
+                    expandedSidebar ? 'свернуть меню' : 'развернуть меню'
+                  }
+                  onClick={() => setExpandedSidebar((s) => !s)}
+                >
+                  <PanelLeftClose size={18} />
                 </button>
                 <div className="sidebar-nav">
                   {navItems.map((item) => (
                     <motion.button
                       key={item.id}
                       className="side-link"
+                      aria-label={item.label}
+                      title={item.label}
                       aria-current={nav === item.id ? 'page' : undefined}
                       onClick={() => goto(item.id as Route['type'])}
-                      whileHover={reduced ? undefined : { x: 5 }}
+                      whileHover={reduced ? undefined : { scale: 1.06 }}
                       whileTap={{ scale: 0.97 }}
                     >
                       {nav === item.id && (
@@ -953,10 +1088,10 @@ export function App() {
                   </button>
                 ))}
                 <div className="sidebar-bottom">
-                  <span className="tiny">independent sounds</span>
-                  <p>находи своё.</p>
+                  <span className="tiny">дизайн-пример</span>
                   <Button
                     className="outline"
+                    aria-label="настройки"
                     onClick={() => setSettingsOpen(true)}
                   >
                     <Settings2 size={16} />
@@ -971,15 +1106,19 @@ export function App() {
                   <>
                     <button
                       className="logo text-button"
+                      aria-label="открыть мою волну"
                       onClick={() => goto('home')}
                     >
-                      serein<sup>®</sup>
+                      <span className="music-symbol" aria-hidden="true">
+                        ✳
+                      </span>
+                      <span className="brand-word">музыка</span>
                     </button>
                     <div className="header-actions">
                       <button
                         className="icon-button"
                         aria-label="переключить тему"
-                        onClick={() => setLight((s) => !s)}
+                        onClick={() => setLight(!light)}
                       >
                         {light ? <Moon size={20} /> : <Sun size={20} />}
                       </button>
@@ -1006,16 +1145,18 @@ export function App() {
                       </button>
                       <span className="breadcrumb">
                         {route.type === 'home'
-                          ? 'для тебя'
-                          : route.type === 'search'
-                            ? 'поиск'
-                            : route.type === 'collection'
-                              ? 'твоя коллекция'
-                              : route.type === 'album'
-                                ? 'релиз'
-                                : route.type === 'artist'
-                                  ? 'артист'
-                                  : 'плейлист'}
+                          ? 'моя волна'
+                          : route.type === 'browse'
+                            ? 'что послушать'
+                            : route.type === 'search'
+                              ? 'поиск'
+                              : route.type === 'collection'
+                                ? 'твоя коллекция'
+                                : route.type === 'album'
+                                  ? 'релиз'
+                                  : route.type === 'artist'
+                                    ? 'артист'
+                                    : 'плейлист'}
                       </span>
                     </div>
                     <div className="header-actions">
@@ -1029,7 +1170,7 @@ export function App() {
                       <button
                         className="icon-button"
                         aria-label="переключить тему"
-                        onClick={() => setLight((s) => !s)}
+                        onClick={() => setLight(!light)}
                       >
                         {light ? <Moon size={19} /> : <Sun size={19} />}
                       </button>
@@ -1351,6 +1492,44 @@ export function App() {
               </div>
             </MotionDialog>
             <MotionDialog
+              open={waveSettingsOpen}
+              onClose={() => setWaveSettingsOpen(false)}
+              title="настроить волну"
+              id="wave-settings"
+            >
+              <div className="wave-preferences">
+                <p className="secondary">выбери, чего хочется сейчас</p>
+                <GlassRadioGroup
+                  label="характер волны"
+                  items={[
+                    { id: 'all', label: 'всё' },
+                    { id: 'favorite', label: 'любимое' },
+                    { id: 'discover', label: 'открытия' },
+                  ]}
+                  value={waveMode}
+                  onChange={(id) => {
+                    setWaveMode(id);
+                    const next =
+                      id === 'favorite'
+                        ? 'slow-morning'
+                        : id === 'discover'
+                          ? 'soft-rhythm'
+                          : 'after-midnight';
+                    setMood(next);
+                    if (audio.playing) playMood(next);
+                  }}
+                />
+                <ElasticGallery
+                  items={playlists}
+                  onOpen={(id) => {
+                    playMood(id);
+                    setWaveSettingsOpen(false);
+                  }}
+                />
+                <p className="demo-note">в демо меняется подборка фрагментов</p>
+              </div>
+            </MotionDialog>
+            <MotionDialog
               open={queueOpen}
               onClose={() => setQueueOpen(false)}
               title="очередь воспроизведения"
@@ -1431,14 +1610,17 @@ export function App() {
               id="settings"
             >
               <div className="settings-content">
-                <label>
-                  <span>светлая тема</span>
-                  <input
-                    type="checkbox"
-                    checked={light}
-                    onChange={(e) => setLight(e.target.checked)}
-                  />
-                </label>
+                <ProfileCard>
+                  <span className="profile-avatar">
+                    <UserRound size={26} />
+                  </span>
+                  <div>
+                    <strong>твоя музыка</strong>
+                    <p>настрой под себя</p>
+                  </div>
+                  <SkyToggle light={light} onChange={setLight} />
+                </ProfileCard>
+                <ThemePreviews value={themeMode} onChange={setThemeMode} />
                 <label>
                   <span>уменьшить анимации</span>
                   <input
@@ -1525,7 +1707,7 @@ function AlbumCard({
   return (
     <motion.article
       className="album-card"
-      whileHover={reduced ? undefined : { y: -6 }}
+      whileHover={reduced ? undefined : { y: -3 }}
       whileTap={reduced ? undefined : { scale: 0.985 }}
       layout
     >

@@ -48,7 +48,7 @@ export function MotionPreferences({
     </MotionPreferencesContext.Provider>
   );
 }
-function useEffectiveReducedMotion() {
+export function useEffectiveReducedMotion() {
   const setting = useContext(MotionPreferencesContext);
   const system = useReducedMotion();
   return setting || Boolean(system);
@@ -287,11 +287,15 @@ export function MotionDialog({
           <motion.div
             key={id}
             className="dialog-surface"
-            initial={reduced ? false : { opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            initial={
+              reduced
+                ? false
+                : { opacity: 0, y: 16, scale: 0.95, filter: 'blur(4px)' }
+            }
+            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.98 }}
             transition={
-              reduced ? { duration: 0 } : { duration: 0.24, ease: enterEase }
+              reduced ? { duration: 0 } : { duration: 0.2, ease: enterEase }
             }
           >
             <div className="dialog-heading">
